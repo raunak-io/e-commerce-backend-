@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const path = require('path');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -45,6 +46,7 @@ app.use(
     whitelist: ['price', 'ratingsQuantity', 'ratingsAverage', 'productType']
   })
 );
+app.use(express.static(path.join('backend/images')));
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);

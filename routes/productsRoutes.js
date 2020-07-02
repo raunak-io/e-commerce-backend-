@@ -3,6 +3,7 @@ const authController = require('./../controllers/authController');
 
 const productControllers = require('./../controllers/productsControllers');
 const reviewRouter = require('./../routes/reviewRoutes');
+const imageValidator = require('../utils/imageValidator');
 const router = express.Router();
 
 router.use('/:productId/reviews', reviewRouter);
@@ -13,6 +14,7 @@ router
   .post(
     authController.protect,
     authController.restrictTo('admin'),
+    imageValidator,
     productControllers.createProduct
   );
 router
@@ -32,6 +34,7 @@ router
   .patch(
     authController.protect,
     authController.restrictTo('admin'),
+    imageValidator,
     productControllers.UpdateProduct
   )
   .delete(
