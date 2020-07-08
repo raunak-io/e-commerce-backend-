@@ -34,18 +34,20 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
+  const url = req.protocol + '://' + req.get('host');
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
-    confirmPassword: req.body.confirmPassword
+    confirmPassword: req.body.confirmPassword,
+    image: url + '/images/' + req.file.name
   });
   createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log(req.headers.authorization);
   if (!email || !password) {
     return next(new AppError('email/password is missing', 404));
   }
@@ -66,6 +68,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+    console.log(token);
   }
 
   if (!token) {

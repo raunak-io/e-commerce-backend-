@@ -1,10 +1,13 @@
 const express = require('express');
+
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const path = require('path');
+const cors = require('cors');
+// const bodyParser = require('body-parser');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -15,18 +18,27 @@ const reviewRouter = require('./routes/reviewRoutes');
 
 const app = express();
 app.use(helmet());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  // res.setHeader(
-  //   'Access-Control-Allow-Headers',
-  //   'Origin,X-Requested-With,Content-Type,Accept'
-  // );
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET ,POST ,PATCH ,DELETE ,OPTIONS'
-  );
-  next();
-});
+app.use(cors());
+app.options('*',cors());
+
+app.use(express.static(path.join('backend/images')));
+
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
+
+// app.use((req, res, next) => {
+//   res.setHeader('Access-Control-Allow-Origin', '*');
+//   res.setHeader('Access-Control-Allow-Credentials', true);
+//   res.setHeader(
+//     'Access-Control-Allow-Headers',
+//     'Origin,X-Requested-With,Content-Type,Accept,Authorization'
+//   );
+//   res.setHeader(
+//     'Access-Control-Allow-Methods',
+//     'GET ,POST ,PATCH ,DELETE ,OPTIONS'
+//   );
+//   next();
+// });
 const limiter = rateLimit({
   max: 50,
   windowMs: 60 * 60 * 1000,
@@ -46,7 +58,7 @@ app.use(
     whitelist: ['price', 'ratingsQuantity', 'ratingsAverage', 'productType']
   })
 );
-app.use(express.static(path.join('backend/images')));
+
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
