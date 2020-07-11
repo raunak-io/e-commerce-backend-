@@ -1,4 +1,5 @@
 const express = require('express');
+const morgan = require('morgan');
 
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -19,9 +20,10 @@ const reviewRouter = require('./routes/reviewRoutes');
 const app = express();
 app.use(helmet());
 app.use(cors());
-app.options('*',cors());
+app.options('*', cors());
+app.use('/', express.static(path.join('./images')));
 
-app.use(express.static(path.join('backend/images')));
+app.use(morgan('dev'));
 
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({ extended: false }));
@@ -58,7 +60,6 @@ app.use(
     whitelist: ['price', 'ratingsQuantity', 'ratingsAverage', 'productType']
   })
 );
-
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);

@@ -8,15 +8,57 @@ exports.topRatedProducts = (req, res, next) => {
   req.query.limit = '10';
   req.query.sort = '-ratingsAverage ,price';
   req.query.fields = 'name,price,ratingsAverage,companyName,productType';
-
   next();
 };
 
 exports.getAllProducts = factory.getAll(Product);
 
 exports.getOneProduct = factory.getOne(Product, { path: 'reviews' });
-exports.createProduct = factory.createOne(Product);
-exports.UpdateProduct = factory.updateOne(Product);
+exports.createProduct = catchAsync(async (req, res, next) => {
+  console.log(req.body);
+  console.log(req.file);
+  const url = req.protocol + '://' + req.get('host');
+  const newProduct = await Product.create({
+    name: req.body.name,
+    companyName: req.body.companyName,
+    productType: req.body.productType,
+    price: req.body.price,
+    priceDiscount: req.body.priceDiscount,
+    description: req.body.description,
+    image: url + '/images/products/' + req.file.originalname
+  });
+  res.status(200).json({
+    status: 'success',
+    message: 'product created successfully'
+  });
+});
+
+// exports.createProduct = factory.createOne(Product);
+exports.UpdateProduct = catchAsync(async (req, res, next) => {
+  const filteredBody = filterObj(
+    req.body,
+    'name',
+    'companyName',
+    'productType',
+    'price',
+    'priceDiscount',
+    'description',
+    'image'
+  );
+  const updateProduct = await Product.findByIdAndUpdate(
+    req.data.id,
+    filteredBody,
+    {
+      new: true,
+      runValidators: true
+    }
+  );
+  res.status(200).json({
+    status: 'success',
+    message: 'product created successfully'
+  });
+});
+// exports.UpdateProduct = factory.updateOne(Product);
 
 exports.deleteProduct = factory.deleteOne(Product);
 

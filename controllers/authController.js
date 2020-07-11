@@ -14,6 +14,7 @@ const signToken = id => {
 
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -21,12 +22,15 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+  console.log(token);
   res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',
     token,
+    tokenExpiresIn: 90 * 24 * 60 * 60,
+
     data: {
       user
     }
@@ -34,18 +38,20 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
+  console.log(req.file);
   const url = req.protocol + '://' + req.get('host');
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     confirmPassword: req.body.confirmPassword,
-    image: url + '/images/' + req.file.name
+    image: url + '/images/users/' + req.file.originalname
   });
   createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const { email, password } = req.body;
   console.log(req.headers.authorization);
   if (!email || !password) {
@@ -62,6 +68,7 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
+  // console.log(req.headers.authorization);
   let token;
   if (
     req.headers.authorization &&
