@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 
@@ -6,7 +7,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
-const path = require('path');
+
 const cors = require('cors');
 // const bodyParser = require('body-parser');
 
@@ -21,33 +22,17 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.options('*', cors());
-app.use('/', express.static(path.join('./images')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(morgan('dev'));
 
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
-
-// app.use((req, res, next) => {
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-//   res.setHeader('Access-Control-Allow-Credentials', true);
-//   res.setHeader(
-//     'Access-Control-Allow-Headers',
-//     'Origin,X-Requested-With,Content-Type,Accept,Authorization'
-//   );
-//   res.setHeader(
-//     'Access-Control-Allow-Methods',
-//     'GET ,POST ,PATCH ,DELETE ,OPTIONS'
-//   );
-//   next();
-// });
 const limiter = rateLimit({
   max: 50,
   windowMs: 60 * 60 * 1000,
   message: 'too many requests from this ip address, please try again in an hour'
 });
 
-app.use('/api', limiter);
+// app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
 
@@ -60,6 +45,9 @@ app.use(
     whitelist: ['price', 'ratingsQuantity', 'ratingsAverage', 'productType']
   })
 );
+
+// Serving static files
+app.use(express.static(`${__dirname}/public`));
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);

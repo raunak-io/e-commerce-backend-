@@ -25,7 +25,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     price: req.body.price,
     priceDiscount: req.body.priceDiscount,
     description: req.body.description,
-    image: url + '/images/products/' + req.file.originalname
+    image: url + '/images/products/' + req.file.filename
   });
   res.status(200).json({
     status: 'success',
