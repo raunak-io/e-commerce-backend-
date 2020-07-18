@@ -12,8 +12,8 @@ router
   .route('/')
   .get(productControllers.getAllProducts)
   .post(
-    // authController.protect,
-    // authController.restrictTo('admin'),
+    authController.protect,
+    authController.restrictTo('admin'),
     postImageValidation,
     productControllers.createProduct
   );

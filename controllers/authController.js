@@ -145,6 +145,39 @@ exports.restrictTo = (...roles) => {
   };
 };
 
+exports.contactUs = catchAsync(async (req, res, next) => {
+  const { firstname, lastname, email, mobile } = req.body;
+
+  const message = `Dear ${firstname} ${lastname} .
+   Thank you for contacting us .
+   we have recieved your message .
+   for any other queries regarding our products and services
+   feel free to contact us at
+    :freakylabzz147@gmail.com 
+   or give us a call anytime at
+   : (+91)-831-805-3987 
+   from abhishek@freakylabzz.in  `;
+  console.log(req.body);
+
+  try {
+    await sendEmail({
+      email: email,
+      subject: `hello ${firstname} .Thanks for reaching us `,
+      message
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: "THANK YOU FOR REACHING US !! WE'VE RECIEVED YOUR MESSAGE!"
+    });
+  } catch (err) {
+    console.log(err);
+    return next(
+      new AppError('there was an error sending the email, Try again Later', 500)
+    );
+  }
+});
+
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
@@ -153,9 +186,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
+  const url = req.protocol + '://' + req.get('host');
+
+  const resetURL = url + '/api/v1/users/resetPassword/' + resetToken;
 
   const message = `Forgot your password? submet a patch request with your new password
   and confirmPassword to : ${resetURL}.\nif you didn't forget your password then please
@@ -206,6 +239,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
+  console.log(req.body);
   const user = await User.findById(req.user.id).select('+password');
 
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {

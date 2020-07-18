@@ -35,27 +35,34 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 
 // exports.createProduct = factory.createOne(Product);
 exports.UpdateProduct = catchAsync(async (req, res, next) => {
-  const filteredBody = filterObj(
-    req.body,
-    'name',
-    'companyName',
-    'productType',
-    'price',
-    'priceDiscount',
-    'description',
-    'image'
-  );
+  let image = req.body.image;
+  console.log(req.file);
+  console.log(req.body.image);
+  console.log(req.body);
+  if (req.file) {
+    const url = req.protocol + '://' + req.get('host');
+    image = url + '/images/products/' + req.file.filename;
+  }
+  const filteredBody = {
+    name: req.body.name,
+    companyName: req.body.companyName,
+    productType: req.body.productType,
+    price: req.body.price,
+    priceDiscount: req.body.priceDiscount,
+    description: req.body.description,
+    image: image
+  };
   const updateProduct = await Product.findByIdAndUpdate(
-    req.data.id,
+    req.params.id,
     filteredBody,
     {
       new: true,
-      runValidators: true
+      runValidators: false
     }
   );
   res.status(200).json({
     status: 'success',
-    message: 'product created successfully'
+    message: 'product updated successfully'
   });
 });
 // exports.UpdateProduct = factory.updateOne(Product);
