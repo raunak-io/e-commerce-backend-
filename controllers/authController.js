@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
+const ContactUs = require('./../models/contactModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
@@ -22,7 +23,7 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
-  console.log(token);
+ 
   res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
 
@@ -38,7 +39,7 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-  console.log(req.file);
+  
   const url = req.protocol + '://' + req.get('host');
   const newUser = await User.create({
     name: req.body.name,
@@ -51,9 +52,9 @@ exports.signUp = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  console.log(req.body);
+ 
   const { email, password } = req.body;
-  console.log(req.headers.authorization);
+  
   if (!email || !password) {
     return next(new AppError('email/password is missing', 404));
   }
@@ -68,14 +69,16 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-  // console.log(req.headers.authorization);
+ 
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-    console.log(token);
+    
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -100,39 +103,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   req.user = currentUser;
-  // res.locals.user = currentUser;
+
   next();
 });
-
-// exports.isLoggedIn = async (req, res, next) => {
-//   if (req.cookies.jwt) {
-//     try {
-//       // 1) verify token
-//       const decoded = await promisify(jwt.verify)(
-//         req.cookies.jwt,
-//         process.env.JWT_SECRET
-//       );
-
-//       // 2) Check if user still exists
-//       const currentUser = await User.findById(decoded.id);
-//       if (!currentUser) {
-//         return next();
-//       }
-
-//       // 3) Check if user changed password after the token was issued
-//       if (currentUser.changedPasswordAfter(decoded.iat)) {
-//         return next();
-//       }
-
-//       // THERE IS A LOGGED IN USER
-//       res.locals.user = currentUser;
-//       return next();
-//     } catch (err) {
-//       return next();
-//     }
-//   }
-//   next();
-// };
 
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
@@ -146,23 +119,31 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.contactUs = catchAsync(async (req, res, next) => {
-  const { firstname, lastname, email, mobile } = req.body;
 
-  const message = `Dear ${firstname} ${lastname} .
-   Thank you for contacting us .
-   we have recieved your message .
-   for any other queries regarding our products and services
-   feel free to contact us at
-    :freakylabzz147@gmail.com 
-   or give us a call anytime at
-   : (+91)-831-805-3987 
-   from abhishek@freakylabzz.in  `;
-  console.log(req.body);
+
+  const contacting = await ContactUs.create({
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+    email: req.body.email,
+    mobile: req.body.mobile,
+    message: req.body.message
+  });
+
+  const message = `Dear ${req.body.firstname} ${req.body.lastname} .
+        Thank you for contacting us .
+        we have recieved your message .
+        for any other queries regarding our products and services
+        feel free to contact us at
+             :freakylabzz147@gmail.com 
+        or give us a call anytime at
+             : (+91)-831-805-3987 
+        from abhishek@freakylabzz.in  `;
+ 
 
   try {
     await sendEmail({
-      email: email,
-      subject: `hello ${firstname} .Thanks for reaching us `,
+      email: req.body.email,
+      subject: `hello ${req.body.firstname} .Thanks for reaching us `,
       message
     });
 
@@ -171,7 +152,7 @@ exports.contactUs = catchAsync(async (req, res, next) => {
       message: "THANK YOU FOR REACHING US !! WE'VE RECIEVED YOUR MESSAGE!"
     });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return next(
       new AppError('there was an error sending the email, Try again Later', 500)
     );
@@ -186,13 +167,14 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const url = req.protocol + '://' + req.get('host');
+  const url = req.protocol + '://localhost:4200'; //+ req.get('host');
 
-  const resetURL = url + '/api/v1/users/resetPassword/' + resetToken;
+  const resetURL = url + '/user/reset-pass/' + resetToken;
 
-  const message = `Forgot your password? submet a patch request with your new password
-  and confirmPassword to : ${resetURL}.\nif you didn't forget your password then please
-  ignore this email`;
+  const message = `Forgot your password? 
+         please click on the link below to reset your password
+             : ${resetURL}.
+         if you didn't forget your password then please ignore this email`;
 
   try {
     await sendEmail({
@@ -239,7 +221,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
-  console.log(req.body);
+ 
   const user = await User.findById(req.user.id).select('+password');
 
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {

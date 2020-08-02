@@ -6,8 +6,7 @@ exports.getAll = Model =>
   catchAsync(async (req, res, next) => {
     let filter = {};
     if (req.params.productId) filter = { product: req.params.productId };
-    // console.log(req.query);
-    // console.log(req.params);
+    
     const features = new APIFeatures(Model.find(filter), req.query)
       .filter()
       .sort()
@@ -15,7 +14,7 @@ exports.getAll = Model =>
       .paginate();
 
     const doc = await features.query;
-    console.log(doc);
+    
     res.status(200).json({
       status: 'success',
       results: doc.length,

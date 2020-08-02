@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 
 const cors = require('cors');
 // const bodyParser = require('body-parser');
@@ -32,9 +33,10 @@ const limiter = rateLimit({
   message: 'too many requests from this ip address, please try again in an hour'
 });
 
-// app.use('/api', limiter);
+app.use('/api', limiter);
 
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 app.use(mongoSanitize());
 
@@ -48,6 +50,7 @@ app.use(
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
+
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);

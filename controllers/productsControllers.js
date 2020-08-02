@@ -36,9 +36,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 // exports.createProduct = factory.createOne(Product);
 exports.UpdateProduct = catchAsync(async (req, res, next) => {
   let image = req.body.image;
-  console.log(req.file);
-  console.log(req.body.image);
-  console.log(req.body);
+ 
   if (req.file) {
     const url = req.protocol + '://' + req.get('host');
     image = url + '/images/products/' + req.file.filename;

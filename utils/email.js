@@ -16,7 +16,7 @@ const sendEmail = async options => {
     }
   });
   const mailOptions = {
-    from: 'abhishek from:',
+    from: 'Abhishek At Freaky Labzz:',
     to: options.email,
     subject: options.subject,
     text: options.message

@@ -5,7 +5,7 @@ const productControllers = require('./../controllers/productsControllers');
 const reviewRouter = require('./../routes/reviewRoutes');
 const postImageValidation = require('../utils/postImageValidator');
 const router = express.Router();
-// router.use(authController.protect);
+
 router.use('/:productId/reviews', reviewRouter);
 
 router
