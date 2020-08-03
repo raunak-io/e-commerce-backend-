@@ -167,7 +167,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const url = req.protocol + '://localhost:4200'; //+ req.get('host');
+  const url = req.protocol + '://'+ req.get('host');
 
   const resetURL = url + '/user/reset-pass/' + resetToken;
 

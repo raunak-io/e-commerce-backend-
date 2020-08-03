@@ -8,6 +8,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 
 const cors = require('cors');
 // const bodyParser = require('body-parser');
@@ -48,13 +49,18 @@ app.use(
   })
 );
 
+app.use(compression());
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
+app.use('/',express.static(path.join(__dirname,`frontend-data`)));
 
 
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use((req,res,next)=>{
+  res.sendFile(path.join(__dirname,"frontend-data","index.html"))
+})
 
 app.all('*', (req, res, next) => {
   next(new AppError(`can't find ${req.originalUrl} on this server`, 404));
