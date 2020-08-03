@@ -4,7 +4,8 @@
   "description": "demo shopping cart ",
   "main": "app.js",
   "scripts": {
-    "start": " nodemon server.js",
+    "start": " node server.js",
+    "dev": " nodemon server.js",
     "start:prod": "SET NODE_ENV=production&&nodemon server.js"
   },
   "author": "raunak srivastava",
