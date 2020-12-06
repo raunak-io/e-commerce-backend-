@@ -6,6 +6,7 @@ const MIME_TYPE_MAP = {
   'image/jpg': 'jpg'
 };
 
+//cloudinary.uploader.upload(//file path and a call back function)
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const isValid = MIME_TYPE_MAP[file.mimetype];
@@ -20,8 +21,7 @@ const fileStorage = multer.diskStorage({
       .toLowerCase()
       .split(' ')
       .join('-');
-    const extension = MIME_TYPE_MAP[file.mimetype];
-    cb(null, name + '.' + extension);
+    cb(null, name);
   }
 });
 module.exports = multer({ storage: fileStorage }).single('image');

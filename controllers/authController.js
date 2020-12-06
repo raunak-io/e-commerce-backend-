@@ -1,11 +1,14 @@
 const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
+// const cloudinary = require('cloudinary');
+const Formidable = require('formidable')
 const User = require('./../models/userModel');
 const ContactUs = require('./../models/contactModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
+const cloudinary = require('../utils/cloudinary')
 
 const signToken = id => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -23,7 +26,7 @@ const createSendToken = (user, statusCode, res) => {
     httpOnly: true
   };
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
- 
+
   res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
 
@@ -39,22 +42,24 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signUp = catchAsync(async (req, res, next) => {
-  
-  const url = req.protocol + '://' + req.get('host');
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    confirmPassword: req.body.confirmPassword,
-    image: url + '/images/users/' + req.file.filename
+  cloudinary.uploader.upload(req.file.path, res => {
+    imgUrlGetter(res.secure_url);
   });
-  createSendToken(newUser, 201, res);
+  const imgUrlGetter = async function(url) {
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      image: url
+    });
+    createSendToken(newUser, 201, res);
+  };
 });
 
 exports.login = catchAsync(async (req, res, next) => {
- 
   const { email, password } = req.body;
-  
+
   if (!email || !password) {
     return next(new AppError('email/password is missing', 404));
   }
@@ -69,14 +74,12 @@ exports.login = catchAsync(async (req, res, next) => {
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
- 
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
-    
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
@@ -119,8 +122,6 @@ exports.restrictTo = (...roles) => {
 };
 
 exports.contactUs = catchAsync(async (req, res, next) => {
-
-
   const contacting = await ContactUs.create({
     firstname: req.body.firstname,
     lastname: req.body.lastname,
@@ -138,7 +139,6 @@ exports.contactUs = catchAsync(async (req, res, next) => {
         or give us a call anytime at
              : (+91)-831-805-3987 
         from abhishek@freakylabzz.in  `;
- 
 
   try {
     await sendEmail({
@@ -167,7 +167,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const url = req.protocol + '://'+ req.get('host');
+  const url = req.protocol + '://' + req.get('host');
 
   const resetURL = url + '/user/reset-pass/' + resetToken;
 
@@ -221,7 +221,6 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
- 
   const user = await User.findById(req.user.id).select('+password');
 
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {

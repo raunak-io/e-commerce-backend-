@@ -2,9 +2,10 @@ const express = require('express');
 const userControllers = require('./../controllers/usersControllers');
 const authController = require('./../controllers/authController');
 const imageValidator = require('../utils/imageValidator');
+
 const router = express.Router();
 
-router.post('/signUp', imageValidator, authController.signUp);
+router.post('/signUp',  imageValidator,authController.signUp); 
 router.post('/login', authController.login);
 
 router.post('/forgotPassword', authController.forgotPassword);

@@ -21,7 +21,7 @@ const fileStorage = multer.diskStorage({
       .split(' ')
       .join('-');
     const extension = MIME_TYPE_MAP[file.mimetype];
-    cb(null, name + '.' + extension); //
+    cb(null, name ); //
   }
 });
 module.exports = multer({ storage: fileStorage }).single('image');

@@ -3,6 +3,7 @@ const Product = require('./../models/productsModel');
 const catchAsync = require('./../utils/catchAsync');
 
 const factory = require('./../controllers/handlerFactory');
+const cloudinary = require('../utils/cloudinary');
 
 exports.topRatedProducts = (req, res, next) => {
   req.query.limit = '10';
@@ -15,53 +16,81 @@ exports.getAllProducts = factory.getAll(Product);
 
 exports.getOneProduct = factory.getOne(Product, { path: 'reviews' });
 exports.createProduct = catchAsync(async (req, res, next) => {
-  console.log(req.body);
-  console.log(req.file);
-  const url = req.protocol + '://' + req.get('host');
-  const newProduct = await Product.create({
-    name: req.body.name,
-    companyName: req.body.companyName,
-    productType: req.body.productType,
-    price: req.body.price,
-    priceDiscount: req.body.priceDiscount,
-    description: req.body.description,
-    image: url + '/images/products/' + req.file.filename
+  cloudinary.uploader.upload(req.file.path, res => {
+    imgUrlGetter(res.secure_url);
   });
-  res.status(200).json({
-    status: 'success',
-    message: 'product created successfully'
-  });
+
+  const imgUrlGetter = async function(url) {
+    const newProduct = await Product.create({
+      name: req.body.name,
+      companyName: req.body.companyName,
+      productType: req.body.productType,
+      price: req.body.price,
+      priceDiscount: req.body.priceDiscount,
+      description: req.body.description,
+      image: url
+    });
+    res.status(200).json({
+      status: 'success',
+      message: 'product created successfully'
+    });
+  };
 });
 
 // exports.createProduct = factory.createOne(Product);
 exports.UpdateProduct = catchAsync(async (req, res, next) => {
   let image = req.body.image;
- 
+
   if (req.file) {
-    const url = req.protocol + '://' + req.get('host');
-    image = url + '/images/products/' + req.file.filename;
+    cloudinary.uploader.upload(req.file.path, res => {
+      imgUrlGetter(res.secure_url);
+    });
+    const imgUrlGetter = async function(url) {
+      const filteredBody = {
+        name: req.body.name,
+        companyName: req.body.companyName,
+        productType: req.body.productType,
+        price: req.body.price,
+        priceDiscount: req.body.priceDiscount,
+        description: req.body.description,
+        image: url
+      };
+      const updateProduct = await Product.findByIdAndUpdate(
+        req.params.id,
+        filteredBody,
+        {
+          new: true,
+          runValidators: false
+        }
+      );
+      res.status(200).json({
+        status: 'success',
+        message: 'product updated successfully'
+      });
+    };
+  } else {
+    const filteredBody = {
+      name: req.body.name,
+      companyName: req.body.companyName,
+      productType: req.body.productType,
+      price: req.body.price,
+      priceDiscount: req.body.priceDiscount,
+      description: req.body.description,
+      image: image
+    };
+    const updateProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      filteredBody,
+      {
+        new: true,
+        runValidators: false
+      }
+    );
+    res.status(200).json({
+      status: 'success',
+      message: 'product updated successfully'
+    });
   }
-  const filteredBody = {
-    name: req.body.name,
-    companyName: req.body.companyName,
-    productType: req.body.productType,
-    price: req.body.price,
-    priceDiscount: req.body.priceDiscount,
-    description: req.body.description,
-    image: image
-  };
-  const updateProduct = await Product.findByIdAndUpdate(
-    req.params.id,
-    filteredBody,
-    {
-      new: true,
-      runValidators: false
-    }
-  );
-  res.status(200).json({
-    status: 'success',
-    message: 'product updated successfully'
-  });
 });
 // exports.UpdateProduct = factory.updateOne(Product);
 

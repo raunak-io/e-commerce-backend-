@@ -2,6 +2,7 @@ const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const factory = require('./../controllers/handlerFactory');
+const cloudinary = require('../utils/cloudinary');
 
 // const filterObj = (obj, ...allowedFields) => {
 //   const newObj = {};
@@ -24,27 +25,52 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       )
     );
   }
+
   let image = req.body.image;
   if (req.file) {
-    const url = req.protocol + '://' + req.get('host');
-    image = url + '/images/users/' + req.file.filename;
+    cloudinary.uploader.upload(req.file.path, res => {
+      imgUrlGetter(res.secure_url);
+    });
+
+    const imgUrlGetter = async function(url) {
+      const filteredBody = {
+        name: req.body.name,
+        email: req.body.email,
+        image: url
+      };
+      const updateUser = await User.findByIdAndUpdate(
+        req.user.id,
+        filteredBody,
+        {
+          new: true,
+          runValidators: true
+        }
+      );
+      res.status(200).json({
+        status: 'success',
+        data: {
+          user: updateUser
+        }
+      });
+    };
+  } else {
+    const filteredBody = {
+      name: req.body.name,
+      email: req.body.email,
+      image: image
+    };
+    //  filterObj(req.body, 'name', 'email', 'image');
+    const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+      new: true,
+      runValidators: true
+    });
+    res.status(200).json({
+      status: 'success',
+      data: {
+        user: updateUser
+      }
+    });
   }
-  const filteredBody = {
-    name: req.body.name,
-    email: req.body.email,
-    image: image
-  };
-  //  filterObj(req.body, 'name', 'email', 'image');
-  const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true
-  });
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user: updateUser
-    }
-  });
 });
 
 exports.deleteMe = catchAsync(async (req, res, next) => {
