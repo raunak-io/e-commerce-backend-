@@ -30,6 +30,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
       description: req.body.description,
       image: url
     });
+    console.log("new product",newProduct)
     res.status(200).json({
       status: 'success',
       message: 'product created successfully'
