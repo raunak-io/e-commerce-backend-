@@ -16,6 +16,7 @@ exports.getAllProducts = factory.getAll(Product);
 
 exports.getOneProduct = factory.getOne(Product, { path: 'reviews' });
 exports.createProduct = catchAsync(async (req, res, next) => {
+  console.log("requwst body here .. ",req.body)
   cloudinary.uploader.upload(req.file.path, res => {
     imgUrlGetter(res.secure_url);
   });
