@@ -83,7 +83,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
-console.log("passed protecxt stage")
+console.log("passed protecxt stage",req.body)
   if (!token) {
     return next(
       new AppError('you are not logged in ! Please log in to get access', 401)

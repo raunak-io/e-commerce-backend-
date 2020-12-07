@@ -13,6 +13,7 @@ const fileStorage = multer.diskStorage({
     if (isValid) {
       error = null;
     }
+    console.log("image validation stage passed")
     cb(error, 'images/products');
   },
   filename: (req, file, cb) => {
@@ -23,5 +24,6 @@ const fileStorage = multer.diskStorage({
     const extension = MIME_TYPE_MAP[file.mimetype];
     cb(null, name ); //
   }
+
 });
 module.exports = multer({ storage: fileStorage }).single('image');
