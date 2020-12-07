@@ -22,8 +22,11 @@ const fileStorage = multer.diskStorage({
       .split(' ')
       .join('-');
     const extension = MIME_TYPE_MAP[file.mimetype];
+    console.log("image validation stage 111passed",req.body,file)
     cb(null, name ); //
+    console.log("image validation stage passed",req.body,file)
   }
 
-});
+}
+);
 module.exports = multer({ storage: fileStorage }).single('image');
