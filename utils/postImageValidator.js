@@ -38,7 +38,6 @@ const MIME_TYPE_MAP = {
   'image/jpg': 'jpg'
 };
 
-//cloudinary.uploader.upload(//file path and a call back function)
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const isValid = MIME_TYPE_MAP[file.mimetype];
